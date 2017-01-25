@@ -12,9 +12,9 @@ import vae
 IMG_DIM = 28
 
 ARCHITECTURE = [IMG_DIM**2, # 784 pixels
-                500, 500, # intermediate encoding
-                2] # latent space dims
-                # 50]
+                500, 500,# intermediate encoding
+                #2] # latent space dims
+                50]
 # (and symmetrically back out again)
 
 HYPERPARAMS = {
@@ -22,11 +22,11 @@ HYPERPARAMS = {
     "learning_rate": 5E-4,
     "dropout": 0.9,
     "lambda_l2_reg": 1E-5,
-    "nonlinearity": tf.nn.elu,
+    "nonlinearity": tf.nn.relu,
     "squashing": tf.nn.sigmoid
 }
 
-MAX_ITER = 2000#2**16
+MAX_ITER = 20000#2**16
 MAX_EPOCHS = np.inf
 
 LOG_DIR = "./log"
