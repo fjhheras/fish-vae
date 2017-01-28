@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
+HEIGHT = 60
+WIDTH = 80 #TEMPORAL!
 
 def plotSubset(model, x_in, x_reconstructed, n=10, cols=None, outlines=True,
                save=True, name="subset", outdir="."):
@@ -15,10 +17,10 @@ def plotSubset(model, x_in, x_reconstructed, n=10, cols=None, outlines=True,
     rows = 2 * int(np.ceil(n / cols)) # doubled b/c input & reconstruction
 
     plt.figure(figsize = (cols * 2, rows * 2))
-    dim = int(model.architecture[0]**0.5) # assume square images
+    #dim = int(model.architecture[0]**0.5) # assume square images
 
     def drawSubplot(x_, ax_):
-        plt.imshow(x_.reshape([dim, dim]), cmap="Greys")
+        plt.imshow(x_.reshape([HEIGHT,WIDTH]), cmap="Greys")
         if outlines:
             ax_.get_xaxis().set_visible(False)
             ax_.get_yaxis().set_visible(False)
@@ -129,8 +131,8 @@ def interpolate(model, latent_1, latent_2, n=20, save=True, name="interpolate", 
                     for start, end in zip(latent_1, latent_2)]).T
     xs_reconstructed = model.decode(zs)
 
-    dim = int(model.architecture[0]**0.5)
-    canvas = np.hstack([x.reshape([dim, dim]) for x in xs_reconstructed])
+    #dim = int(model.architecture[0]**0.5)
+    canvas = np.hstack([x.reshape([HEIGHT, WIDTH]) for x in xs_reconstructed])
 
     plt.figure(figsize = (n, 2))
     plt.imshow(canvas, cmap="Greys")
@@ -164,7 +166,7 @@ def justMNIST(x, save=True, name="digit", outdir="."):
 def morph(model, zs, n_per_morph=10, loop=True, save=True, name="morph", outdir="."):
     """Plot frames of morph between zs (np.array of 2+ latent points)"""
     assert len(zs) > 1, "Must specify at least two latent pts for morph!"
-    dim = int(model.architecture[0]**0.5) # assume square images
+    #dim = int(model.architecture[0]**0.5) # assume square images
 
     def pairwise(iterable):
         """s -> (s0,s1), (s1,s2), (s2, s3), ..."""
@@ -186,7 +188,7 @@ def morph(model, zs, n_per_morph=10, loop=True, save=True, name="morph", outdir=
 
     for i, x in enumerate(all_xs):
         plt.figure(figsize = (5, 5))
-        plt.imshow(x.reshape([dim, dim]), cmap="Greys")
+        plt.imshow(x.reshape([HEIGHT, WIDTH]), cmap="Greys")
 
         # axes off
         ax = plt.gca()

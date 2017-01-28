@@ -225,7 +225,7 @@ class VAE():
                 pow_ = 0
 
             while True:
-                x, _ = X.train.next_batch(self.batch_size)
+                x = X.train.next_batch(self.batch_size)
                 feed_dict = {self.x_in: x, self.dropout_: self.dropout}
                 fetches = [self.x_reconstructed, self.cost, self.global_step, self.train_op]
                 x_reconstructed, cost, i, _ = self.sesh.run(fetches, feed_dict)
@@ -247,16 +247,16 @@ class VAE():
                         print("{}^{} = {}".format(BASE, pow_, i))
                         pow_ += INCREMENT
 
-                if i%1000 == 0 and verbose:
+                if i%500 == 0 and verbose:
                     print("round {} --> avg cost: ".format(i), err_train / i)
 
-                if i%2000 == 0 and verbose:# and i >= 10000:
+                if i%1000 == 0 and verbose:# and i >= 10000:
                     # visualize `n` examples of current minibatch inputs + reconstructions
                     plot.plotSubset(self, x, x_reconstructed, n=10, name="train",
                                     outdir=plots_outdir)
 
                     if cross_validate:
-                        x, _ = X.validation.next_batch(self.batch_size)
+                        x = X.validation.next_batch(self.batch_size)
                         feed_dict = {self.x_in: x}
                         fetches = [self.x_reconstructed, self.cost]
                         x_reconstructed, cost = self.sesh.run(fetches, feed_dict)

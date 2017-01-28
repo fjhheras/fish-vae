@@ -44,10 +44,13 @@ def extract_images(folder,expected_size):
     for image in os.listdir(folder):
         image_file = os.path.join(folder, image)
         try:
-            image_data = (cv2.cvtColor(cv2.imread(image_file),cv2.COLOR_BGR2GRAY).astype(np.float32) - 
-                    PX_DEPTH / 2) / PX_DEPTH
+            #image_data = cv2.equalizeHist(cv2.cvtColor(cv2.imread(image_file),cv2.COLOR_BGR2GRAY))
+            image_data = cv2.cvtColor(cv2.imread(image_file),cv2.COLOR_BGR2GRAY)
+            image_data = (image_data.astype(np.float32) )/ PX_DEPTH
+                    #- PX_DEPTH / 2) / PX_DEPTH
             if image_data.shape != (height,width):
                 raise Exception('Unexpected image shape: {} instead of {}'.format(image_data.shape,(height,width)))
+            
             dataset[image_index, :, :] = image_data
             image_index += 1
         except IOError as e:
@@ -56,7 +59,7 @@ def extract_images(folder,expected_size):
     num_images = image_index
     print("Extracting {} images from folder '{}'".format(num_images,folder))
     dataset = dataset[0:num_images, :, :]
-    return dataset
+    return dataset#.astype(np.float32)
 
 class DataSet(object):
 
@@ -98,8 +101,8 @@ class DataSet(object):
             # Finished epoch
             self._epochs_completed += 1
             # Shuffle the data
-            perm = numpy.arange(self._num_examples)
-            numpy.random.shuffle(perm)
+            perm = np.arange(self._num_examples)
+            np.random.shuffle(perm)
             self._images = self._images[perm]
             #self._labels = self._labels[perm]
             # Start next epoch
@@ -135,7 +138,7 @@ def read_data_sets(train_dir,
     return Datasets(train=train, validation=validation, test=test)
 
 
-def read_fishyfish:
+def read_fishyfish():
     return read_data_sets('images/',reshape = True,expected_size = (80,60)) 
 
 
