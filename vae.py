@@ -47,6 +47,7 @@ class VAE():
                 "Architecture must have more layers! (input, 1+ hidden, latent)"
 
             # build graph
+            print ("Creating network with size {}...".format(architecture))
             handles = self._buildGraph()
             for handle in handles:
                 tf.add_to_collection(VAE.RESTORE_KEY, handle)
@@ -124,6 +125,7 @@ class VAE():
         global_step = tf.Variable(0, trainable=False)
         with tf.name_scope("Adam_optimizer"):
             optimizer = tf.train.AdamOptimizer(self.learning_rate)
+            #optimizer = tf.train.AdadeltaOptimizer(self.learning_rate)
             tvars = tf.trainable_variables()
             grads_and_vars = optimizer.compute_gradients(cost, tvars)
             clipped = [(tf.clip_by_value(grad, -5, 5), tvar) # gradient clipping

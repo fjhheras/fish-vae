@@ -45,7 +45,7 @@ def extract_images(folder,expected_size):
         image_file = os.path.join(folder, image)
         try:
             #image_data = cv2.equalizeHist(cv2.cvtColor(cv2.imread(image_file),cv2.COLOR_BGR2GRAY))
-            image_data = cv2.cvtColor(cv2.imread(image_file),cv2.COLOR_BGR2GRAY)
+            image_data = cv2.imread(image_file,cv2.IMREAD_GRAYSCALE)
             image_data = (image_data.astype(np.float32) )/ PX_DEPTH
                     #- PX_DEPTH / 2) / PX_DEPTH
             if image_data.shape != (height,width):
@@ -67,9 +67,6 @@ class DataSet(object):
                images,
                reshape=True):
         """Construct a DataSet.
-        one_hot arg is used only if fake_data is true.  `dtype` can be either
-        `uint8` to leave the input as `[0, 255]`, or `float32` to rescale into
-        `[0, 1]`.
         """
         # Convert shape from [num examples, rows, columns, depth]
         # to [num examples, rows*columns] (assuming depth == 1)

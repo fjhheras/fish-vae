@@ -42,7 +42,7 @@ def plotSubset(model, x_in, x_reconstructed, n=10, cols=None, outlines=True,
         title = "{}_batch_{}_round_{}_{}.png".format(
             model.datetime, "_".join(map(str, model.architecture)), model.step, name)
         plt.savefig(os.path.join(outdir, title), bbox_inches="tight")
-
+        plt.close('all')
 
 def plotInLatent(model, x_in, labels=[], range_=None, title=None,
                  save=True, name="data", outdir="."):
