@@ -65,7 +65,7 @@ class DataSet(object):
 
     def __init__(self,
                images,
-               reshape=True):
+               reshape=False):
         """Construct a DataSet.
         """
         # Convert shape from [num examples, rows, columns, depth]
@@ -97,6 +97,8 @@ class DataSet(object):
         if self._index_in_epoch > self._num_examples:
             # Finished epoch
             self._epochs_completed += 1
+            if self.epochs_completed%10 == 0:
+                print("Starting epoch {}...".format(self.epochs_completed))
             # Shuffle the data
             perm = np.arange(self._num_examples)
             np.random.shuffle(perm)
@@ -112,7 +114,7 @@ class DataSet(object):
 
 def read_data_sets(train_dir,
                    reshape=True,
-                   test_fraction = 0.05,
+                   test_fraction = 0.0,
                    validation_fraction=0.1,
                    expected_size = None):
     
@@ -135,7 +137,7 @@ def read_data_sets(train_dir,
     return Datasets(train=train, validation=validation, test=test)
 
 
-def read_fishyfish():
-    return read_data_sets('images/',reshape = True,expected_size = (80,60)) 
+def read_fishyfish(reshape = True):
+    return read_data_sets('images/',reshape = reshape, expected_size = (80,60)) 
 
 

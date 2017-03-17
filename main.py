@@ -12,21 +12,22 @@ IMG_WIDTH = 80
 IMG_HEIGHT = 60
 
 ARCHITECTURE = [IMG_WIDTH*IMG_HEIGHT, # 
-                800, 800, 500,300,# intermediate encoding
+                500, 500 ,500, # intermediate encoding
                 #2] # latent space dims
-                50]
+                20]
 # (and symmetrically back out again)
 
 HYPERPARAMS = {
     "batch_size": 128*4,
-    "learning_rate": 4E-4,
+    "learning_rate": 1E-4,
     "dropout": .9,
-    "lambda_l2_reg": 1E-5,
+    "lambda_l2_reg": 0,#1E-5,
     "nonlinearity": tf.nn.relu,
-    "squashing": tf.nn.sigmoid
-}
+    "squashing": tf.nn.sigmoid,
+    "beta": 10.0
+    }
 
-MAX_ITER = 2**18
+MAX_ITER = 50001#2**18
 MAX_EPOCHS = np.inf
 
 LOG_DIR = "./log"
@@ -42,11 +43,11 @@ def all_plots(model, dataset):
         print("Plotting in latent space...")
         plot_all_in_latent(model, dataset)
 
-        print("Exploring latent...")
-        plot.exploreLatent(model, nx=20, ny=20, range_=(-4, 4), outdir=PLOTS_DIR)
-        for n in (24, 30, 60, 100):
-            plot.exploreLatent(model, nx=n, ny=n, ppf=True, outdir=PLOTS_DIR,
-                               name="explore_ppf{}".format(n))
+        #print("Exploring latent...")
+        #plot.exploreLatent(model, nx=20, ny=20, range_=(-4, 4), outdir=PLOTS_DIR)
+        #for n in (24, 30, 60, 100):
+        #    plot.exploreLatent(model, nx=n, ny=n, ppf=True, outdir=PLOTS_DIR,
+        #                       name="explore_ppf{}".format(n))
 
     #print("Interpolating...")
     #interpolate_digits(model, mnist)
@@ -65,7 +66,7 @@ def plot_all_in_latent(model, mnist):
     names = ("train", "validation", "test")
     datasets = (mnist.train, mnist.validation, mnist.test)
     for name, dataset in zip(names, datasets):
-        plot.plotInLatent(model, dataset.images, dataset.labels, name=name,
+        plot.plotInLatent(model, dataset.images, name=name,
                           outdir=PLOTS_DIR)
 
 #def interpolate_digits(model, mnist):

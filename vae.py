@@ -5,6 +5,7 @@ import sys
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.contrib.layers import fully_connected
 
 from layers import Dense
 import plot
@@ -23,8 +24,9 @@ class VAE():
         "dropout": 1.,
         "lambda_l2_reg": 0.,
         "nonlinearity": tf.nn.elu,
-        "squashing": tf.nn.sigmoid
-    }
+        "squashing": tf.nn.sigmoid,
+        "beta": 1.0
+        }
     RESTORE_KEY = "to_restore"
 
     def __init__(self, architecture=[], d_hyperparams={}, meta_graph=None,
@@ -77,32 +79,47 @@ class VAE():
         """Train step"""
         return self.global_step.eval(session=self.sesh)
 
+    def encoding(self,x):
+        x_copy = tf.identity(x)
+        with tf.variable_scope("encoding") as scope:
+            y = tf.contrib.layers.stack(x_copy, fully_connected, self.architecture[1:-1],
+                    scope='fc', activation_fn = self.nonlinearity,     
+                    biases_initializer=tf.constant_initializer(0.001),
+                    weights_initializer=tf.contrib.layers.xavier_initializer())    
+        return tf.nn.dropout(y, self.dropout)
+
+    def decoding(self,z):
+        z_copy = tf.identity(z)
+        with tf.variable_scope("decoding") as scope:
+            x_1 = tf.contrib.layers.stack(z_copy, fully_connected, self.architecture[-2:0:-1],
+                    scope='fc', activation_fn = self.nonlinearity,     
+                    biases_initializer=tf.constant_initializer(0.001),
+                    weights_initializer=tf.contrib.layers.xavier_initializer())    
+            x_1d = tf.nn.dropout(x_1, self.dropout)
+            x_2 = fully_connected(inputs = x_1d, num_outputs = self.architecture[0], activation_fn = None, 
+                    weights_initializer=tf.contrib.layers.xavier_initializer())    
+
+            return self.squashing(x_2)
+
     def _buildGraph(self):
         x_in = tf.placeholder(tf.float32, shape=[None, # enables variable batch size
                                                  self.architecture[0]], name="x")
         dropout = tf.placeholder_with_default(1., shape=[], name="dropout")
-
+        
         # encoding / "recognition": q(z|x)
-        encoding = [Dense("encoding", hidden_size, dropout, self.nonlinearity)
-                    # hidden layers reversed for function composition: outer -> inner
-                    for hidden_size in reversed(self.architecture[1:-1])]
-        h_encoded = composeAll(encoding)(x_in)
-
+        h_encoded = self.encoding(x_in)
+        
         # latent distribution parameterized by hidden encoding
         # z ~ N(z_mean, np.exp(z_log_sigma)**2)
-        z_mean = Dense("z_mean", self.architecture[-1], dropout)(h_encoded)
-        z_log_sigma = Dense("z_log_sigma", self.architecture[-1], dropout)(h_encoded)
+        z_mean = fully_connected(inputs=h_encoded, activation_fn = None, num_outputs=self.architecture[-1])#, name="z_mean")
+        z_log_sigma = fully_connected(inputs=h_encoded, activation_fn = None, num_outputs=self.architecture[-1])#, name="z_log_sigma")
+        #z_log_sigma = Dense("z_log_sigma", self.architecture[-1], dropout)(h_encoded)
 
         # kingma & welling: only 1 draw necessary as long as minibatch large enough (>100)
         z = self.sampleGaussian(z_mean, z_log_sigma)
 
         # decoding / "generative": p(x|z)
-        decoding = [Dense("decoding", hidden_size, dropout, self.nonlinearity)
-                    for hidden_size in self.architecture[1:-1]] # assumes symmetry
-        # final reconstruction: restore original dims, squash outputs [0, 1]
-        decoding.insert(0, Dense( # prepend as outermost function
-            "x_decoding", self.architecture[0], dropout, self.squashing))
-        x_reconstructed = tf.identity(composeAll(decoding)(z), name="x_reconstructed")
+        x_reconstructed = self.decoding(z)
 
         # reconstruction loss: mismatch b/w x & x_reconstructed
         # binary cross-entropy -- assumes x & p(x|z) are iid Bernoullis
@@ -118,7 +135,7 @@ class VAE():
 
         with tf.name_scope("cost"):
             # average over minibatch
-            cost = tf.reduce_mean(rec_loss + kl_loss, name="vae_cost")
+            cost = tf.reduce_mean(rec_loss + self.beta*kl_loss, name="vae_cost")
             cost += l2_reg
 
         # optimization
@@ -139,8 +156,8 @@ class VAE():
             z_ = tf.placeholder_with_default(tf.random_normal([1, self.architecture[-1]]),
                                             shape=[None, self.architecture[-1]],
                                             name="latent_in")
-        x_reconstructed_ = composeAll(decoding)(z_)
-
+        x_reconstructed_ = self.decoding(z_) 
+        
         return (x_in, dropout, z_mean, z_log_sigma, x_reconstructed,
                 z_, x_reconstructed_, cost, global_step, train_op)
 
@@ -153,7 +170,7 @@ class VAE():
 
     @staticmethod
     def crossEntropy(obs, actual, offset=1e-7):
-        """Binary cross-entropy, per training example"""
+        """(Negative of) binary cross-entropy, per training example"""
         # (tf.Tensor, tf.Tensor, float) -> tf.Tensor
         with tf.name_scope("cross_entropy"):
             # bound by clipping to avoid nan

@@ -124,6 +124,34 @@ def exploreLatent(model, nx=20, ny=20, range_=(-4, 4), ppf=False,
             model.datetime, "_".join(map(str, model.architecture)), model.step, name)
         plt.savefig(os.path.join(outdir, title), bbox_inches="tight")
 
+def latent_one_d(model, amplitude, n=20, save=True, name="one_dimension", outdir="."):
+    """Util to interpolate between two points in n-dimensional latent space"""
+    
+    dim = model.architecture[-1]
+    canvas_ = []
+    for i in range(dim):
+        latent_1 = np.zeros(dim)
+        latent_2 = np.zeros(dim)
+        latent_1[i] = -amplitude
+        latent_2[i] = amplitude
+        zs = np.array([np.linspace(start, end, n) # interpolate across every z dimension
+                    for start, end in zip(latent_1, latent_2)]).T
+        xs_reconstructed = model.decode(zs)
+        canvas_.append(np.hstack([x.reshape([HEIGHT, WIDTH]) for x in xs_reconstructed]))
+
+    canvas = (np.vstack(c for c in canvas_))
+
+    plt.figure(figsize = (n, 2*dim))
+    plt.imshow(canvas, cmap="Greys")
+    plt.axis("off")
+    plt.tight_layout()
+
+    # plt.show()
+    if save:
+        title = "{}_latent_{}_round_{}_{}".format(
+            model.datetime, "_".join(map(str, model.architecture)), model.step, name)
+        plt.savefig(os.path.join(outdir, title), bbox_inches="tight")
+
 
 def interpolate(model, latent_1, latent_2, n=20, save=True, name="interpolate", outdir="."):
     """Util to interpolate between two points in n-dimensional latent space"""
