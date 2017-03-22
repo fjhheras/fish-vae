@@ -91,7 +91,6 @@ def exploreLatent(model, nx=20, ny=20, range_=(-4, 4), ppf=False,
     # linear range; else ppf (percent point function) == inverse CDF from [0, 1]
     range_ = ((0, 1) if ppf else range_)
     min_, max_ = range_
-    dim = int(model.architecture[0]**0.5)
 
     # complex number steps act like np.linspace
     # row, col indices (i, j) correspond to graph coords (y, x)
@@ -103,7 +102,7 @@ def exploreLatent(model, nx=20, ny=20, range_=(-4, 4), ppf=False,
         DELTA = 1E-16 # delta to avoid +/- inf at 0, 1 boundaries
         zs = np.array([norm.ppf(np.clip(z, DELTA, 1 - DELTA)) for z in zs])
 
-    canvas = np.vstack([np.hstack([x.reshape([dim, dim])
+    canvas = np.vstack([np.hstack([x.reshape([HEIGHT, WIDTH])
                                    for x in model.decode(z_row)])
                         for z_row in iter(zs)])
 

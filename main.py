@@ -12,22 +12,22 @@ IMG_WIDTH = 80
 IMG_HEIGHT = 60
 
 ARCHITECTURE = [IMG_WIDTH*IMG_HEIGHT, # 
-                500, 500 ,500, # intermediate encoding
-                #2] # latent space dims
-                20]
+                1000, 500, 500,# intermediate encoding
+                2] # latent space dims
+                #20]
 # (and symmetrically back out again)
 
 HYPERPARAMS = {
     "batch_size": 128*4,
     "learning_rate": 1E-4,
-    "dropout": .9,
+    "dropout": .95,
     "lambda_l2_reg": 0,#1E-5,
     "nonlinearity": tf.nn.relu,
     "squashing": tf.nn.sigmoid,
-    "beta": 10.0
+    "beta": 1.0
     }
 
-MAX_ITER = 50001#2**18
+MAX_ITER = 1000001#2**18
 MAX_EPOCHS = np.inf
 
 LOG_DIR = "./log"
